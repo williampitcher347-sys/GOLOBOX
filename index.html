@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Xbox Web Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1a1a1a, #000);
+  color: white;
+  overflow: hidden;
+}
+
+#dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  padding: 40px;
+  transition: opacity .3s;
+}
+
+.tile {
+  background: linear-gradient(145deg, #111, #222);
+  border-radius: 18px;
+  padding: 20px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.tile.active {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px #00ffcc;
+}
+
+.tile:hover {
+  transform: scale(1.08);
+}
+
+#player {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: black;
+  flex-direction: column;
+}
+
+iframe {
+  flex: 1;
+  border: none;
+}
+
+#topBar {
+  height: 60px;
+  background: linear-gradient(to right, #0f0f0f, #111);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+#quitBtn {
+  background: #e81123;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="dashboard"></div>
+
+<div id="player">
+  <div id="topBar">
+    <button id="quitBtn">Quit Game</button>
+  </div>
+  <iframe id="gameFrame"></iframe>
+</div>
+
+<script>
+const games = [
+  {name:"Krunker", url:"https://krunker.io"},
+  {name:"Shell Shockers", url:"https://shellshock.io"},
+  {name:"Venge.io", url:"https://venge.io"},
+  {name:"Smash Karts", url:"https://smashkarts.io"},
+  {name:"Diep.io", url:"https://diep.io"},
+  {name:"Agar.io", url:"https://agar.io"},
+  {name:"Slither.io", url:"https://slither.io"},
+  {name:"1v1.LOL", url:"https://1v1.lol"},
+  {name:"ZombsRoyale", url:"https://zombsroyale.io"},
+  {name:"Surviv.io", url:"https://surviv.io"},
+  {name:"Paper.io", url:"https://paper-io.com"},
+  {name:"Little Big Snake", url:"https://littlebigsnake.com"},
+  {name:"Hole.io", url:"https://hole-io.com"},
+  {name:"Ev.io", url:"https://ev.io"},
+  {name:"PixWars", url:"https://pixwars2.io"},
+  {name:"Bonk.io", url:"https://bonk.io"},
+  {name:"Tetr.io", url:"https://tetr.io"},
+  {name:"Chess", url:"https://www.chess.com"},
+  {name:"Curve Fever", url:"https://curvefever.io"},
+  {name:"GeoGuessr", url:"https://www.geoguessr.com"}
+];
+
+const dash = document.getElementById("dashboard");
+const frame = document.getElementById("gameFrame");
+const player = document.getElementById("player");
+const quitBtn = document.getElementById("quitBtn");
+
+let selected = 0;
+
+games.forEach((g,i)=>{
+  const tile = document.createElement("div");
+  tile.className = "tile";
+  tile.innerText = g.name;
+  tile.onclick = ()=>launch(i);
+  dash.appendChild(tile);
+});
+
+function updateSelection() {
+  document.querySelectorAll(".tile").forEach((t,i)=>{
+    t.classList.toggle("active", i === selected);
+  });
+}
+
+function launch(i){
+  frame.src = games[i].url;
+  dash.style.display = "none";
+  player.style.display = "flex";
+}
+
+quitBtn.onclick = ()=>{
+  frame.src = "";
+  player.style.display = "none";
+  dash.style.display = "grid";
+};
+
+updateSelection();
+
+// 🎮 Controller support
+setInterval(()=>{
+  const gp = navigator.getGamepads()[0];
+  if(!gp) return;
+
+  if(gp.buttons[15]?.pressed){ selected = Math.min(selected+1, games.length-1); }
+  if(gp.buttons[14]?.pressed){ selected = Math.max(selected-1, 0); }
+
+  if(gp.buttons[0]?.pressed){
+    launch(selected);
+  }
+
+  if(gp.buttons[1]?.pressed){
+    quitBtn.click();
+  }
+
+  updateSelection();
+},150);
+</script>
+
+</body>
+</html>
