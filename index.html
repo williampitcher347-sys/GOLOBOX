@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Xbox Web Dashboard</title>
+<title>Xbox Style UI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-:root {
-  --xbox-green:#107c10;
+:root{
+  --green:#107c10;
   --focus:#00ff88;
 }
 
-* {
-  box-sizing: border-box;
-  font-family: "Segoe UI", system-ui, sans-serif;
+*{
+  box-sizing:border-box;
+  font-family:"Segoe UI",system-ui,sans-serif;
 }
 
-body {
+body{
   margin:0;
-  background: linear-gradient(180deg,#0b0b0b,#000);
+  background:linear-gradient(180deg,#0a0a0a,#000);
   color:white;
   overflow:hidden;
 }
 
-/* LAYOUT */
-#app {
+/* APP */
+#app{
   display:flex;
   height:100vh;
 }
 
 /* SIDEBAR */
-#sidebar {
+#sidebar{
   width:90px;
-  background:#0f0f0f;
+  background:#0e0e0e;
   display:flex;
   flex-direction:column;
   align-items:center;
   padding-top:20px;
   gap:30px;
-  border-right:1px solid #1a1a1a;
+  border-right:1px solid #1b1b1b;
 }
 
-.sideBtn {
+.side{
   width:48px;
   height:48px;
   border-radius:12px;
@@ -49,60 +49,54 @@ body {
   align-items:center;
   justify-content:center;
   font-size:22px;
-  cursor:pointer;
 }
 
-.sideBtn.active {
-  background:var(--xbox-green);
-  box-shadow:0 0 15px var(--xbox-green);
+.side.active{
+  background:var(--green);
+  box-shadow:0 0 15px var(--green);
 }
 
 /* MAIN */
-#main {
+#main{
   flex:1;
   padding:30px;
 }
 
-/* TOP BAR */
-#top {
+/* ROWS */
+.row{
+  margin-bottom:40px;
+}
+
+.row h2{
+  margin:0 0 15px 10px;
+  font-weight:400;
+}
+
+.rail{
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:30px;
+  gap:20px;
+  transition:transform .3s ease;
 }
 
-#profile {
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:#333;
-}
-
-/* LIBRARY */
-#library {
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
-  gap:25px;
-}
-
-.game {
-  height:140px;
+.tile{
+  min-width:260px;
+  height:150px;
   border-radius:18px;
   background:linear-gradient(145deg,#1a1a1a,#111);
   display:flex;
   align-items:flex-end;
   padding:15px;
   font-size:18px;
-  transition:.2s;
+  transition:.25s;
 }
 
-.game.active {
-  transform:scale(1.1);
-  box-shadow:0 0 30px var(--focus);
+.tile.active{
+  transform:scale(1.18);
+  box-shadow:0 0 35px var(--focus);
 }
 
 /* PLAYER */
-#player {
+#player{
   display:none;
   position:fixed;
   inset:0;
@@ -110,32 +104,25 @@ body {
   flex-direction:column;
 }
 
-iframe {
-  flex:1;
-  border:none;
-}
-
-#playerBar {
+#bar{
   height:60px;
+  background:#0e0e0e;
   display:flex;
   align-items:center;
   padding:0 20px;
-  background:#0f0f0f;
 }
 
-#quit {
+#quit{
   background:#e81123;
   border:none;
   color:white;
-  padding:10px 18px;
+  padding:10px 20px;
   border-radius:12px;
-  font-size:15px;
 }
 
-/* SETTINGS */
-#settings {
-  display:none;
-  font-size:22px;
+iframe{
+  flex:1;
+  border:none;
 }
 </style>
 </head>
@@ -144,74 +131,84 @@ iframe {
 
 <div id="app">
   <div id="sidebar">
-    <div class="sideBtn active">🏠</div>
-    <div class="sideBtn">🎮</div>
-    <div class="sideBtn">⚙️</div>
+    <div class="side active">🏠</div>
+    <div class="side">🎮</div>
+    <div class="side">⚙️</div>
   </div>
 
   <div id="main">
-    <div id="top">
-      <h1>Home</h1>
-      <div id="profile"></div>
+    <div class="row">
+      <h2>Quick Play</h2>
+      <div class="rail" id="row0"></div>
     </div>
 
-    <div id="library"></div>
+    <div class="row">
+      <h2>Shooters</h2>
+      <div class="rail" id="row1"></div>
+    </div>
 
-    <div id="settings">
-      <p>⚙️ Settings</p>
-      <p>Controller: Connected</p>
-      <p>Theme: Xbox Dark</p>
-      <p>More settings coming…</p>
+    <div class="row">
+      <h2>Arcade & Casual</h2>
+      <div class="rail" id="row2"></div>
     </div>
   </div>
 </div>
 
 <div id="player">
-  <div id="playerBar">
+  <div id="bar">
     <button id="quit">Quit Game</button>
   </div>
   <iframe id="frame"></iframe>
 </div>
 
 <script>
-const games = [
- {n:"Krunker",u:"https://krunker.io"},
- {n:"Shell Shockers",u:"https://shellshock.io"},
- {n:"Venge.io",u:"https://venge.io"},
- {n:"Smash Karts",u:"https://smashkarts.io"},
- {n:"Diep.io",u:"https://diep.io"},
- {n:"Agar.io",u:"https://agar.io"},
- {n:"Slither.io",u:"https://slither.io"},
- {n:"1v1.LOL",u:"https://1v1.lol"},
- {n:"ZombsRoyale",u:"https://zombsroyale.io"},
- {n:"Paper.io",u:"https://paper-io.com"},
- {n:"Ev.io",u:"https://ev.io"},
- {n:"Bonk.io",u:"https://bonk.io"},
- {n:"Tetr.io",u:"https://tetr.io"},
- {n:"Chess",u:"https://chess.com"},
- {n:"Curve Fever",u:"https://curvefever.io"},
- {n:"GeoGuessr",u:"https://geoguessr.com"}
+const rows = [
+  [
+    {n:"Krunker",u:"https://krunker.io"},
+    {n:"Shell Shockers",u:"https://shellshock.io"},
+    {n:"Smash Karts",u:"https://smashkarts.io"},
+    {n:"Venge.io",u:"https://venge.io"}
+  ],
+  [
+    {n:"1v1.LOL",u:"https://1v1.lol"},
+    {n:"Ev.io",u:"https://ev.io"},
+    {n:"ZombsRoyale",u:"https://zombsroyale.io"},
+    {n:"Diep.io",u:"https://diep.io"}
+  ],
+  [
+    {n:"Agar.io",u:"https://agar.io"},
+    {n:"Slither.io",u:"https://slither.io"},
+    {n:"Bonk.io",u:"https://bonk.io"},
+    {n:"Tetr.io",u:"https://tetr.io"},
+    {n:"Curve Fever",u:"https://curvefever.io"}
+  ]
 ];
 
-const lib = document.getElementById("library");
-const frame = document.getElementById("frame");
-const player = document.getElementById("player");
-const quit = document.getElementById("quit");
-const settings = document.getElementById("settings");
+let rowIndex=0;
+let colIndex=0;
 
-let index = 0;
+const frame=document.getElementById("frame");
+const player=document.getElementById("player");
+const quit=document.getElementById("quit");
 
-games.forEach(g=>{
-  const d = document.createElement("div");
-  d.className="game";
-  d.textContent=g.n;
-  d.onclick=()=>launch(g.u);
-  lib.appendChild(d);
+rows.forEach((r,ri)=>{
+  const rail=document.getElementById("row"+ri);
+  r.forEach((g,ci)=>{
+    const t=document.createElement("div");
+    t.className="tile";
+    t.textContent=g.n;
+    t.onclick=()=>launch(g.u);
+    rail.appendChild(t);
+  });
 });
 
 function update(){
-  document.querySelectorAll(".game").forEach((g,i)=>{
-    g.classList.toggle("active", i===index);
+  rows.forEach((r,ri)=>{
+    const rail=document.getElementById("row"+ri);
+    rail.style.transform=`translateX(${-colIndex*280}px)`;
+    rail.querySelectorAll(".tile").forEach((t,ci)=>{
+      t.classList.toggle("active", ri===rowIndex && ci===colIndex);
+    });
   });
 }
 
@@ -229,13 +226,17 @@ setInterval(()=>{
   const gp=navigator.getGamepads()[0];
   if(!gp) return;
 
-  if(gp.buttons[15]?.pressed) index=Math.min(index+1,games.length-1);
-  if(gp.buttons[14]?.pressed) index=Math.max(index-1,0);
-  if(gp.buttons[0]?.pressed) launch(games[index].u);
+  if(gp.buttons[15]?.pressed) colIndex=Math.min(colIndex+1,rows[rowIndex].length-1);
+  if(gp.buttons[14]?.pressed) colIndex=Math.max(colIndex-1,0);
+
+  if(gp.buttons[13]?.pressed){ rowIndex=Math.min(rowIndex+1,rows.length-1); colIndex=0; }
+  if(gp.buttons[12]?.pressed){ rowIndex=Math.max(rowIndex-1,0); colIndex=0; }
+
+  if(gp.buttons[0]?.pressed) launch(rows[rowIndex][colIndex].u);
   if(gp.buttons[1]?.pressed) quit.click();
 
   update();
-},150);
+},160);
 
 update();
 </script>
