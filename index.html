@@ -11,81 +11,81 @@
   --focus:#00ff88;
 }
 
-*{box-sizing:border-box;font-family:"Segoe UI",system-ui,sans-serif}
+*{
+  box-sizing:border-box;
+  font-family:"Segoe UI",system-ui,sans-serif;
+}
 
 body{
   margin:0;
-  background:black;
+  background:linear-gradient(180deg,#0b0b0b,#000);
   color:white;
-  overflow:hidden;
+  overflow-y:auto; /* REAL SCROLL */
 }
 
-/* BOOT */
-#boot{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:48px;
-  letter-spacing:4px;
-  z-index:99;
-  animation:boot 2.5s forwards;
+::-webkit-scrollbar{
+  width:8px;
 }
-@keyframes boot{
-  0%{opacity:1}
-  80%{opacity:1}
-  100%{opacity:0;pointer-events:none}
+::-webkit-scrollbar-thumb{
+  background:#1f1f1f;
+  border-radius:4px;
 }
-
-/* GUIDE */
-#guide{
-  position:fixed;
-  top:0;left:0;bottom:0;
-  width:320px;
-  background:#0e0e0e;
-  transform:translateX(-100%);
-  transition:.3s;
-  z-index:50;
-  padding:20px;
-}
-#guide.open{transform:translateX(0)}
-#guide h2{margin-top:0}
-.guideItem{padding:14px;border-radius:10px;margin-bottom:8px}
-.guideItem.active{background:var(--green)}
 
 /* APP */
-#app{padding:40px 30px}
+#app{
+  padding:40px 30px 120px;
+}
 
-/* ROWS */
-.row{margin-bottom:60px}
-.row h2{margin:0 0 15px 15px;font-weight:400}
+/* ROW */
+.row{
+  margin-bottom:60px;
+}
+
+.row h2{
+  margin:0 0 16px 12px;
+  font-weight:400;
+}
 
 /* RAIL */
 .rail{
   display:flex;
-  gap:22px;
-  transition:transform .4s cubic-bezier(.2,.8,.2,1);
+  gap:20px;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  padding-bottom:10px;
 }
+.rail::-webkit-scrollbar{height:6px}
 
 /* TILE */
 .tile{
-  min-width:280px;
-  height:160px;
+  min-width:260px;
+  height:150px;
   border-radius:18px;
-  background:linear-gradient(145deg,#1a1a1a,#111);
+  background-size:cover;
+  background-position:center;
   display:flex;
   align-items:flex-end;
-  padding:16px;
-  font-size:18px;
+  padding:14px;
+  font-size:17px;
+  position:relative;
   transition:.25s;
 }
+.tile::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
+  border-radius:18px;
+}
+
+.tile span{
+  position:relative;
+  z-index:1;
+}
+
 .tile.focused{
-  transform:scale(1.22);
-  box-shadow:
-    0 0 0 4px rgba(0,255,136,.35),
-    0 0 40px var(--focus);
+  transform:scale(1.18);
+  box-shadow:0 0 0 4px rgba(0,255,136,.35),0 0 35px var(--focus);
 }
 
 /* PLAYER */
@@ -95,7 +95,9 @@ body{
   inset:0;
   background:black;
   flex-direction:column;
+  z-index:50;
 }
+
 #bar{
   height:60px;
   background:#0e0e0e;
@@ -103,52 +105,27 @@ body{
   align-items:center;
   padding:0 20px;
 }
+
 #quit{
   background:#e81123;
   border:none;
   color:white;
-  padding:10px 20px;
+  padding:10px 22px;
   border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
 }
-iframe{flex:1;border:none}
+
+iframe{
+  flex:1;
+  border:none;
+}
 </style>
 </head>
 
 <body>
 
-<div id="boot">XBOX</div>
-
-<div id="guide">
-  <h2>Guide</h2>
-  <div class="guideItem active">Home</div>
-  <div class="guideItem">Library</div>
-  <div class="guideItem">Profile</div>
-  <div class="guideItem">Settings</div>
-</div>
-
-<div id="app">
-
-  <div class="row">
-    <h2>Recently Played</h2>
-    <div class="rail" id="recent"></div>
-  </div>
-
-  <div class="row">
-    <h2>Shooters</h2>
-    <div class="rail" id="row0"></div>
-  </div>
-
-  <div class="row">
-    <h2>Arcade & Casual</h2>
-    <div class="rail" id="row1"></div>
-  </div>
-
-  <div class="row">
-    <h2>Other Games</h2>
-    <div class="rail" id="row2"></div>
-  </div>
-
-</div>
+<div id="app"></div>
 
 <div id="player">
   <div id="bar">
@@ -157,80 +134,86 @@ iframe{flex:1;border:none}
   <iframe id="frame"></iframe>
 </div>
 
-<audio id="moveSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
-<audio id="selectSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.wav"></audio>
-
 <script>
-/* GAMES */
-const rows=[
-[
- {n:"Krunker",u:"https://krunker.io"},
- {n:"Shell Shockers",u:"https://shellshock.io"},
- {n:"Venge.io",u:"https://venge.io"},
- {n:"Ev.io",u:"https://ev.io"},
- {n:"1v1.LOL",u:"https://1v1.lol"},
- {n:"ZombsRoyale",u:"https://zombsroyale.io"}
-],
-[
- {n:"Smash Karts",u:"https://smashkarts.io"},
- {n:"Bonk.io",u:"https://bonk.io"},
- {n:"Agar.io",u:"https://agar.io"},
- {n:"Slither.io",u:"https://slither.io"},
- {n:"Hole.io",u:"https://hole-io.com"},
- {n:"Paper.io",u:"https://paper-io.com"}
-],
-[
- {n:"Diep.io",u:"https://diep.io"},
- {n:"Tetr.io",u:"https://tetr.io"},
- {n:"Curve Fever",u:"https://curvefever.io"},
- {n:"Chess",u:"https://chess.com"},
- {n:"GeoGuessr",u:"https://geoguessr.com"},
- {n:"Little Big Snake",u:"https://littlebigsnake.com"}
-]
+/* GAME DATA (30+) */
+const sections=[
+{
+ title:"Shooters",
+ games:[
+  {n:"Krunker",u:"https://krunker.io"},
+  {n:"Shell Shockers",u:"https://shellshock.io"},
+  {n:"Venge.io",u:"https://venge.io"},
+  {n:"Ev.io",u:"https://ev.io"},
+  {n:"1v1.LOL",u:"https://1v1.lol"},
+  {n:"ZombsRoyale",u:"https://zombsroyale.io"},
+  {n:"Surviv.io",u:"https://surviv.io"}
+ ]
+},
+{
+ title:"Action & Racing",
+ games:[
+  {n:"Smash Karts",u:"https://smashkarts.io"},
+  {n:"Madalin Cars",u:"https://madalincars.com"},
+  {n:"Drift Hunters",u:"https://drifthunters.com"},
+  {n:"Moto X3M",u:"https://moto-x3m.io"},
+  {n:"Paper Racer",u:"https://paperracer.io"}
+ ]
+},
+{
+ title:"Arcade & Casual",
+ games:[
+  {n:"Agar.io",u:"https://agar.io"},
+  {n:"Slither.io",u:"https://slither.io"},
+  {n:"Hole.io",u:"https://hole-io.com"},
+  {n:"Paper.io",u:"https://paper-io.com"},
+  {n:"Little Big Snake",u:"https://littlebigsnake.com"},
+  {n:"Bonk.io",u:"https://bonk.io"}
+ ]
+},
+{
+ title:"Strategy & Other",
+ games:[
+  {n:"Diep.io",u:"https://diep.io"},
+  {n:"Tetr.io",u:"https://tetr.io"},
+  {n:"Chess",u:"https://chess.com"},
+  {n:"Curve Fever",u:"https://curvefever.io"},
+  {n:"GeoGuessr",u:"https://geoguessr.com"}
+ ]
+}
 ];
 
-const recent=[];
+/* BUILD UI */
+const app=document.getElementById("app");
 
-/* BUILD */
-rows.forEach((r,ri)=>{
-  const rail=document.getElementById("row"+ri);
-  r.forEach(g=>{
+sections.forEach((s,si)=>{
+  const row=document.createElement("div");
+  row.className="row";
+  row.innerHTML=`<h2>${s.title}</h2>`;
+  const rail=document.createElement("div");
+  rail.className="rail";
+  rail.dataset.row=si;
+
+  s.games.forEach((g,gi)=>{
     const t=document.createElement("div");
     t.className="tile";
-    t.textContent=g.n;
-    t.onclick=()=>launch(g);
+    t.style.backgroundImage=`url(https://www.google.com/s2/favicons?domain=${new URL(g.u).hostname}&sz=128)`;
+    t.innerHTML=`<span>${g.n}</span>`;
+    t.onclick=()=>launch(g.u);
     rail.appendChild(t);
   });
+
+  row.appendChild(rail);
+  app.appendChild(row);
 });
 
-/* STATE */
-let rowIndex=0,colIndex=0,last=0;
-const delay=220;
-
-/* UPDATE */
-function update(){
-  rows.forEach((r,ri)=>{
-    const rail=document.getElementById("row"+ri);
-    rail.style.transform=`translateX(${-colIndex*302}px)`;
-    rail.querySelectorAll(".tile").forEach((t,ci)=>{
-      t.classList.toggle("focused",ri===rowIndex&&ci===colIndex);
-    });
-  });
-}
-
-/* LAUNCH */
+/* PLAYER */
 const frame=document.getElementById("frame");
 const player=document.getElementById("player");
 const quit=document.getElementById("quit");
 
-function launch(g){
-  document.getElementById("selectSound").play();
-  frame.src=g.u;
+function launch(url){
+  frame.src=url;
   player.style.display="flex";
-  if(!recent.find(x=>x.n===g.n)){
-    recent.unshift(g);
-    renderRecent();
-  }
 }
 
 quit.onclick=()=>{
@@ -238,20 +221,10 @@ quit.onclick=()=>{
   player.style.display="none";
 };
 
-/* RECENT */
-function renderRecent(){
-  const r=document.getElementById("recent");
-  r.innerHTML="";
-  recent.slice(0,5).forEach(g=>{
-    const t=document.createElement("div");
-    t.className="tile";
-    t.textContent=g.n;
-    t.onclick=()=>launch(g);
-    r.appendChild(t);
-  });
-}
+/* CONTROLLER NAV */
+let r=0,c=0,last=0;
+const delay=220;
 
-/* CONTROLLER */
 function loop(){
   const gp=navigator.getGamepads()[0];
   if(gp){
@@ -259,31 +232,50 @@ function loop(){
     if(now-last>delay){
       const lx=gp.axes[0],ly=gp.axes[1];
 
-      if(lx>0.6){colIndex=Math.min(colIndex+1,rows[rowIndex].length-1);move()}
-      if(lx<-0.6){colIndex=Math.max(colIndex-1,0);move()}
-      if(ly>0.6){rowIndex=Math.min(rowIndex+1,rows.length-1);colIndex=0;move()}
-      if(ly<-0.6){rowIndex=Math.max(rowIndex-1,0);colIndex=0;move()}
+      if(lx>0.6){c++;move()}
+      if(lx<-0.6){c--;move()}
+      if(ly>0.6){r++;c=0;scrollPage();move()}
+      if(ly<-0.6){r--;c=0;scrollPage();move()}
 
-      if(gp.buttons[0]?.pressed){launch(rows[rowIndex][colIndex]);last=now}
-      if(gp.buttons[1]?.pressed){quit.click();last=now}
-
-      if(gp.buttons[9]?.pressed){
-        document.getElementById("guide").classList.toggle("open");
+      if(gp.buttons[0]?.pressed){
+        const tile=getTile();
+        if(tile) tile.click();
+        last=now;
+      }
+      if(gp.buttons[1]?.pressed){
+        quit.click();
         last=now;
       }
     }
   }
-  update();
+  updateFocus();
   requestAnimationFrame(loop);
 }
 
-function move(){
-  navigator.vibrate?.(20);
-  document.getElementById("moveSound").play();
-  last=Date.now();
+function move(){last=Date.now()}
+
+function getTile(){
+  const rails=document.querySelectorAll(".rail");
+  r=Math.max(0,Math.min(r,rails.length-1));
+  const tiles=rails[r].children;
+  c=Math.max(0,Math.min(c,tiles.length-1));
+  return tiles[c];
 }
 
-update();
+function updateFocus(){
+  document.querySelectorAll(".tile").forEach(t=>t.classList.remove("focused"));
+  const t=getTile();
+  if(t){
+    t.classList.add("focused");
+    t.scrollIntoView({inline:"center",block:"nearest"});
+  }
+}
+
+function scrollPage(){
+  document.querySelectorAll(".row")[r]?.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+updateFocus();
 loop();
 </script>
 
