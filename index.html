@@ -7,56 +7,75 @@
 
 <style>
 :root{
-  --green:#107c10;
-  --focus:#00ff88;
+  --green:#00ff88;
 }
 
-*{
-  box-sizing:border-box;
-  font-family:"Segoe UI",system-ui,sans-serif;
-}
+*{box-sizing:border-box;font-family:"Segoe UI",system-ui,sans-serif}
 
 body{
   margin:0;
-  background:linear-gradient(180deg,#0b0b0b,#000);
   color:white;
-  overflow-y:auto; /* REAL SCROLL */
+  background:#000;
+  overflow-y:auto;
 }
 
-::-webkit-scrollbar{
-  width:8px;
+/* 🌊 WAVES */
+#waves{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 10% 20%,#0a3d2a,transparent 40%),
+    radial-gradient(circle at 80% 30%,#003a66,transparent 40%),
+    radial-gradient(circle at 50% 80%,#001b14,transparent 40%);
+  animation:waves 20s linear infinite;
 }
-::-webkit-scrollbar-thumb{
-  background:#1f1f1f;
-  border-radius:4px;
+@keyframes waves{
+  0%{background-position:0 0,0 0,0 0}
+  100%{background-position:400px 200px,-300px 300px,200px -200px}
+}
+
+/* 🅰️ START SCREEN */
+#boot{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+}
+
+#bootText{
+  font-size:36px;
+  letter-spacing:4px;
+  color:var(--green);
+  animation:pulse 1.5s infinite;
+}
+@keyframes pulse{
+  0%{opacity:.3}
+  50%{opacity:1}
+  100%{opacity:.3}
 }
 
 /* APP */
 #app{
-  padding:40px 30px 120px;
+  padding:40px 40px 120px;
 }
 
-/* ROW */
-.row{
-  margin-bottom:60px;
-}
+/* ROWS */
+.row{margin-bottom:70px}
+.row h2{margin:0 0 18px 12px;font-weight:400}
 
-.row h2{
-  margin:0 0 16px 12px;
-  font-weight:400;
-}
-
-/* RAIL */
 .rail{
   display:flex;
-  gap:20px;
+  gap:22px;
   overflow-x:auto;
   scroll-behavior:smooth;
   padding-bottom:10px;
 }
-.rail::-webkit-scrollbar{height:6px}
 
-/* TILE */
+/* TILES */
 .tile{
   min-width:260px;
   height:150px;
@@ -66,7 +85,6 @@ body{
   display:flex;
   align-items:flex-end;
   padding:14px;
-  font-size:17px;
   position:relative;
   transition:.25s;
 }
@@ -74,18 +92,23 @@ body{
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
   border-radius:18px;
+  background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
 }
+.tile span{position:relative;z-index:1}
 
-.tile span{
-  position:relative;
-  z-index:1;
-}
-
+/* 🟢 FOCUS */
 .tile.focused{
-  transform:scale(1.18);
-  box-shadow:0 0 0 4px rgba(0,255,136,.35),0 0 35px var(--focus);
+  transform:scale(1.22);
+  box-shadow:
+    0 0 0 5px rgba(0,255,136,.6),
+    0 0 40px rgba(0,255,136,.9);
+  animation:focusPulse 1.2s infinite;
+}
+@keyframes focusPulse{
+  0%{box-shadow:0 0 0 5px rgba(0,255,136,.4),0 0 20px var(--green)}
+  50%{box-shadow:0 0 0 7px rgba(0,255,136,.8),0 0 50px var(--green)}
+  100%{box-shadow:0 0 0 5px rgba(0,255,136,.4),0 0 20px var(--green)}
 }
 
 /* PLAYER */
@@ -112,18 +135,40 @@ body{
   color:white;
   padding:10px 22px;
   border-radius:12px;
-  font-size:16px;
   cursor:pointer;
 }
 
-iframe{
-  flex:1;
-  border:none;
+iframe{flex:1;border:none}
+
+/* 📜 SCROLL INDICATOR */
+#scroll{
+  position:fixed;
+  right:12px;
+  top:120px;
+  width:6px;
+  height:120px;
+  background:#222;
+  border-radius:10px;
+}
+#thumb{
+  width:100%;
+  height:30px;
+  background:var(--green);
+  border-radius:10px;
+  transition:.25s;
 }
 </style>
 </head>
 
 <body>
+
+<div id="waves"></div>
+
+<div id="boot">
+  <div id="bootText">PRESS A TO START</div>
+</div>
+
+<div id="scroll"><div id="thumb"></div></div>
 
 <div id="app"></div>
 
@@ -135,65 +180,31 @@ iframe{
 </div>
 
 <script>
-/* GAME DATA (30+) */
 const sections=[
-{
- title:"Shooters",
- games:[
+ {title:"Shooters",games:[
   {n:"Krunker",u:"https://krunker.io"},
   {n:"Shell Shockers",u:"https://shellshock.io"},
   {n:"Venge.io",u:"https://venge.io"},
-  {n:"Ev.io",u:"https://ev.io"},
-  {n:"1v1.LOL",u:"https://1v1.lol"},
-  {n:"ZombsRoyale",u:"https://zombsroyale.io"},
-  {n:"Surviv.io",u:"https://surviv.io"}
- ]
-},
-{
- title:"Action & Racing",
- games:[
-  {n:"Smash Karts",u:"https://smashkarts.io"},
-  {n:"Madalin Cars",u:"https://madalincars.com"},
-  {n:"Drift Hunters",u:"https://drifthunters.com"},
-  {n:"Moto X3M",u:"https://moto-x3m.io"},
-  {n:"Paper Racer",u:"https://paperracer.io"}
- ]
-},
-{
- title:"Arcade & Casual",
- games:[
+  {n:"Ev.io",u:"https://ev.io"}
+ ]},
+ {title:"Arcade",games:[
   {n:"Agar.io",u:"https://agar.io"},
   {n:"Slither.io",u:"https://slither.io"},
-  {n:"Hole.io",u:"https://hole-io.com"},
   {n:"Paper.io",u:"https://paper-io.com"},
-  {n:"Little Big Snake",u:"https://littlebigsnake.com"},
   {n:"Bonk.io",u:"https://bonk.io"}
- ]
-},
-{
- title:"Strategy & Other",
- games:[
-  {n:"Diep.io",u:"https://diep.io"},
-  {n:"Tetr.io",u:"https://tetr.io"},
-  {n:"Chess",u:"https://chess.com"},
-  {n:"Curve Fever",u:"https://curvefever.io"},
-  {n:"GeoGuessr",u:"https://geoguessr.com"}
- ]
-}
+ ]}
 ];
 
-/* BUILD UI */
 const app=document.getElementById("app");
 
-sections.forEach((s,si)=>{
+sections.forEach(s=>{
   const row=document.createElement("div");
   row.className="row";
   row.innerHTML=`<h2>${s.title}</h2>`;
   const rail=document.createElement("div");
   rail.className="rail";
-  rail.dataset.row=si;
 
-  s.games.forEach((g,gi)=>{
+  s.games.forEach(g=>{
     const t=document.createElement("div");
     t.className="tile";
     t.style.backgroundImage=`url(https://www.google.com/s2/favicons?domain=${new URL(g.u).hostname}&sz=128)`;
@@ -206,76 +217,64 @@ sections.forEach((s,si)=>{
   app.appendChild(row);
 });
 
-/* PLAYER */
 const frame=document.getElementById("frame");
 const player=document.getElementById("player");
 const quit=document.getElementById("quit");
 
-function launch(url){
-  frame.src=url;
+function launch(u){
+  frame.src=u;
   player.style.display="flex";
 }
-
 quit.onclick=()=>{
   frame.src="";
   player.style.display="none";
 };
 
-/* CONTROLLER NAV */
-let r=0,c=0,last=0;
-const delay=220;
+/* CONTROLLER + SCROLL */
+let started=false,r=0,c=0,last=0;
+const thumb=document.getElementById("thumb");
+
+function updateScroll(){
+  const rows=document.querySelectorAll(".row");
+  const p=r/(rows.length-1||1);
+  thumb.style.transform=`translateY(${p*80}px)`;
+}
+
+function focus(){
+  document.querySelectorAll(".tile").forEach(t=>t.classList.remove("focused"));
+  const tile=document.querySelectorAll(".rail")[r]?.children[c];
+  if(tile){
+    tile.classList.add("focused");
+    tile.scrollIntoView({inline:"center",block:"nearest"});
+  }
+  updateScroll();
+}
 
 function loop(){
   const gp=navigator.getGamepads()[0];
   if(gp){
-    const now=Date.now();
-    if(now-last>delay){
-      const lx=gp.axes[0],ly=gp.axes[1];
-
-      if(lx>0.6){c++;move()}
-      if(lx<-0.6){c--;move()}
-      if(ly>0.6){r++;c=0;scrollPage();move()}
-      if(ly<-0.6){r--;c=0;scrollPage();move()}
-
-      if(gp.buttons[0]?.pressed){
-        const tile=getTile();
-        if(tile) tile.click();
-        last=now;
+    if(!started && gp.buttons[0].pressed){
+      document.getElementById("boot").style.display="none";
+      started=true;
+    }
+    if(started && Date.now()-last>200){
+      if(gp.axes[1]>0.6){r++;c=0;last=Date.now()}
+      if(gp.axes[1]<-0.6){r--;c=0;last=Date.now()}
+      if(gp.axes[0]>0.6){c++;last=Date.now()}
+      if(gp.axes[0]<-0.6){c--;last=Date.now()}
+      if(gp.buttons[0].pressed){
+        document.querySelector(".tile.focused")?.click();
+        last=Date.now();
       }
-      if(gp.buttons[1]?.pressed){
-        quit.click();
-        last=now;
-      }
+      r=Math.max(0,Math.min(r,document.querySelectorAll(".row").length-1));
+      c=Math.max(0,Math.min(c,document.querySelectorAll(".rail")[r].children.length-1));
+      focus();
     }
   }
-  updateFocus();
   requestAnimationFrame(loop);
 }
 
-function move(){last=Date.now()}
-
-function getTile(){
-  const rails=document.querySelectorAll(".rail");
-  r=Math.max(0,Math.min(r,rails.length-1));
-  const tiles=rails[r].children;
-  c=Math.max(0,Math.min(c,tiles.length-1));
-  return tiles[c];
-}
-
-function updateFocus(){
-  document.querySelectorAll(".tile").forEach(t=>t.classList.remove("focused"));
-  const t=getTile();
-  if(t){
-    t.classList.add("focused");
-    t.scrollIntoView({inline:"center",block:"nearest"});
-  }
-}
-
-function scrollPage(){
-  document.querySelectorAll(".row")[r]?.scrollIntoView({behavior:"smooth",block:"center"});
-}
-
-updateFocus();
+focus();
 loop();
 </script>
 
